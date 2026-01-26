@@ -1,6 +1,6 @@
-# 📍 Project State: AI Cloud Controller
+# 📍 Project State: AI Cloud Controller v1.5.0 (Stateful Linear RAG)
+**Status:** Major Release / Stable
 **Date:** 2026-01-26
-**Current Version:** 1.3.0 (Total Dry Mode & SDK Alignment)
 
 ---
 

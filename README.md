@@ -1,4 +1,6 @@
-# 🚀 AI Cloud Controller Operations Manual
+# 🚀 AI Cloud Controller | v1.5.0 (Stateful Linear RAG)
+
+**A high-precision terminal interface for interacting with multi-model with integrated memory and budget safety.**
 
 ## 🎮 Execution Commands
 Run the system using the following CLI flags to override `config.json` settings:
