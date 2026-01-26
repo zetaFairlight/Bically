@@ -1,3 +1,5 @@
-*.key
+venv/
+.*_key
 __pycache__/
-.env
+local_memory.txt
+traceability_audit.txt

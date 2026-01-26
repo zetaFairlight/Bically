@@ -1,27 +1,44 @@
 {
-    "active_provider": "nebius_reasoning",
+    "active_provider": "nebius_deepseek_r1",
     "memory_mode": "remote",
+    "search_top_k": 3,
     "traceability": true,
     "trace_log": "traceability_audit.txt",
-    "search_top_k": 3,
-    "nebius_reasoning": {
-        "model": "deepseek-ai/DeepSeek-R1",
-        "api_key_file": ".nebius_key",
-        "base_url": "https://api.studio.nebius.ai/v1/"
+    "budget": {
+        "max_usd": 0.05,
+        "current_session_spend": 0.0
     },
-    "nebius_deepseek": {
-        "model": "deepseek-ai/DeepSeek-V3",
-        "api_key_file": ".nebius_key",
-        "base_url": "https://api.studio.nebius.ai/v1/"
+    "pricing": {
+        "gemini-2.0-flash": {"input": 0.10, "output": 0.40},
+        "deepseek-ai/DeepSeek-R1-0528": {"input": 0.55, "output": 2.19},
+        "deepseek-ai/DeepSeek-V3-0324": {"input": 0.27, "output": 1.10},
+        "nvidia/Llama-3_1-Nemotron-Ultra-253B-v1": {"input": 0.60, "output": 0.60}
     },
-    "nebius_nvidia": {
-        "model": "nvidia/Llama-3.1-Nemotron-70B-Instruct-HF",
-        "api_key_file": ".nebius_key",
-        "base_url": "https://api.studio.nebius.ai/v1/"
+    "providers": {
+        "google_gemini": {
+            "model": "gemini-2.0-flash",
+            "api_key_file": ".gemini_key",
+            "base_url": "https://generativelanguage.googleapis.com/v1beta/openai/"
+        },
+        "nebius_nvidia": {
+            "model": "nvidia/Llama-3_1-Nemotron-Ultra-253B-v1",
+            "api_key_file": ".nebius_key",
+            "base_url": "https://api.studio.nebius.ai/v1/"
+        },
+        "nebius_deepseek_v3": {
+            "model": "deepseek-ai/DeepSeek-V3-0324",
+            "api_key_file": ".nebius_key",
+            "base_url": "https://api.studio.nebius.ai/v1/"
+        },
+        "nebius_deepseek_r1": {
+            "model": "deepseek-ai/DeepSeek-R1-0528",
+            "api_key_file": ".nebius_key",
+            "base_url": "https://api.studio.nebius.ai/v1/"
+        }
     },
     "mxbai": {
         "model": "mixedbread-ai/mxbai-embed-large-v1",
-        "api_key_file": ".mxbai_key",
-        "store_id": "66aad39d-0305-4d81-93f6-8de77b3a823c"
+        "store_id": "66aad39d-0305-4d81-93f6-8de77b3a823c",
+        "api_key_file": ".mxbai_key"
     }
 }

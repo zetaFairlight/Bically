@@ -1,79 +1,98 @@
 import json
 import argparse
 import sys
+import os
 from openai import OpenAI
 from vectordb import save_response, search_memories
 from logger import log_trace
+from menu import select_model_interactive
+
+def check_budget(usage, model_id, config):
+    """Calculates cost and exits if budget is exceeded."""
+    rates = config["pricing"].get(model_id, {"input": 1.0, "output": 2.0})
+    in_cost = (usage.prompt_tokens / 1_000_000) * rates["input"]
+    out_cost = (usage.completion_tokens / 1_000_000) * rates["output"]
+    total = in_cost + out_cost
+    
+    config["budget"]["current_session_spend"] += total
+    current = config["budget"]["current_session_spend"]
+    limit = config["budget"]["max_usd"]
+
+    print(f"💰 Session Spend: ${current:.4f} / ${limit:.2f}")
+
+    if current >= limit:
+        print("\n🛑 BUDGET LIMIT REACHED. Quitting gracefully.")
+        sys.exit(0)
 
 def main():
-    # --- 1. CLI Argument Parsing ---
     parser = argparse.ArgumentParser(description="AI Cloud Controller")
     parser.add_argument("--trace", action="store_true", help="Enable audit logging")
-    parser.add_argument("--local", action="store_true", help="Force local memory mode")
-    parser.add_argument("--cat", type=str, default="General", help="Starting category")
-    # NEW FLAG: Dry run mode to save tokens
-    parser.add_argument("--dry-run", action="store_true", help="Skip API calls and use mock data")
+    parser.add_argument("--dry-run", action="store_true", help="Total Dry Mode (No API costs)")
+    parser.add_argument("--model", type=str, help="Pre-select model in menu")
     args = parser.parse_args()
 
-    # --- 2. Configuration & Initialization ---
+    if not os.path.exists("config.json"):
+        print("!! Error: config.json not found.")
+        sys.exit(1)
+
     with open("config.json") as f:
         config = json.load(f)
     
-    trace_enabled = args.trace or config.get("traceability", False)
-    memory_mode = "local" if args.local else config.get("memory_mode", "remote")
-    current_category = args.cat
-
-    p_cfg = config[config["active_provider"]]
+    available_models = list(config.get("providers", {}).keys())
+    args.model = select_model_interactive(available_models, config, pre_select=args.model)
+    p_cfg = config["providers"][args.model]
     
-    # We only initialize the real client if we aren't in dry-run mode
-    client = None
-    if not args.dry_run:
-        with open(p_cfg["api_key_file"]) as kf:
-            api_key = kf.read().strip()
-        client = OpenAI(base_url=p_cfg["base_url"], api_key=api_key)
+    # API Key Loading
+    try:
+        with open(p_cfg["api_key_file"], "r") as f:
+            api_key = f.read().strip()
+    except FileNotFoundError:
+        print(f"!! Error: Key file {p_cfg['api_key_file']} missing.")
+        sys.exit(1)
 
-    print(f"--- System Initialized (Dry Run: {args.dry_run}) ---")
+    client = OpenAI(base_url=p_cfg["base_url"], api_key=api_key)
+    trace_enabled = args.trace or config.get("traceability", False)
+    print(f"\n🚀 System Online | Model: {args.model} | Limit: ${config['budget']['max_usd']}")
 
     while True:
-        user_input = input(f"\n[{current_category}] You: ").strip()
+        try:
+            user_input = input("\nYou: ").strip()
+        except EOFError: break
         if not user_input or user_input.lower() in ["exit", "quit"]: break
 
-        if user_input.startswith("!cat "):
-            current_category = user_input.split(" ", 1)[1]
-            print(f">> Category updated to: {current_category}")
-            continue
+        context = "MOCK CONTEXT" if args.dry_run else search_memories(user_input)
 
-        # Step A: Memory Search (STILL RUNS in dry-run to test retrieval)
-        print(">> Searching memories...")
-        context = search_memories(user_input, top_k=config.get("search_top_k", 3))
-
-        # Step B: Inference (Logic Fork)
+        thinking = None
         if args.dry_run:
-            # Simulated Data (No cost)
-            thinking = f"DRY RUN: I found context length {len(context)} and I'm analyzing it..."
-            answer = f"DRY RUN: This is a mock response to: '{user_input}'"
+            answer = f"DRY RUN response to '{user_input}'"
         else:
-            # Real LLM Call (Costs tokens)
-            response = client.chat.completions.create(
-                model=p_cfg["model"],
-                messages=[
-                    {"role": "system", "content": f"Context:\n{context}"},
-                    {"role": "user", "content": user_input}
-                ]
-            )
-            thinking = getattr(response.choices[0].message, 'reasoning_content', None)
-            answer = response.choices[0].message.content
+            try:
+                response = client.chat.completions.create(
+                    model=p_cfg["model"],
+                    messages=[
+                        {"role": "system", "content": f"Context: {context}"},
+                        {"role": "user", "content": user_input}
+                    ]
+                )
+                check_budget(response.usage, p_cfg["model"], config)
+                thinking = getattr(response.choices[0].message, 'reasoning_content', None)
+                answer = response.choices[0].message.content
+            except Exception as e:
+                if "429" in str(e) or "quota" in str(e).lower():
+                    print(f"\n⚠️  QUOTA EXHAUSTED: {args.model} is unavailable (Rate Limit).")
+                    print(">> Try another model or use --dry-run.")
+                else:
+                    print(f"\n❌ API ERROR: {e}")
+                continue
 
-        # Step C: Output & Audit
         if thinking and trace_enabled:
             print(f"\n[THOUGHTS]: {thinking}")
-        
         print(f"\nAI: {answer}")
 
-        if trace_enabled:
-            log_trace(p_cfg["model"], user_input, thinking, answer, config.get("trace_log"))
+        if trace_enabled and not args.dry_run:
+            log_trace(args.model, user_input, thinking, answer, config.get("trace_log"))
         
-        save_response(answer, category=current_category, mode=memory_mode)
+        save_response(answer, mode="local" if args.dry_run else "remote")
 
 if __name__ == "__main__":
     main()

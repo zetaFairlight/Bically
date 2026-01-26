@@ -1,34 +1,24 @@
-# 🚀 AI Controller Operations Manual
+# 🚀 AI Cloud Controller Operations Manual
 
-## 🎮 Execution Commands & Flags
+## 🎮 Execution Commands
 Run the system using the following CLI flags to override `config.json` settings:
 
 | Flag | Description |
 | :--- | :--- |
-| `--trace` | **Traceability Mode**: Prints the AI's internal "thinking" to the console and logs it to the audit file. |
-| `--local` | **Offline Memory**: Bypasses the Mixedbread Cloud and saves/reads from `local_memory.txt`. |
+| `--trace` | **Traceability Mode**: Prints the AI's internal "thinking" and logs to audit. |
+| `--dry-run` | **Safety Mode**: Mocks responses and forces local-only memory (zero cost). |
+| `--model` | **Pre-select**: Skips initial navigation to a specific model. |
 
-**Example:** `python3 main.py --trace`
-
----
-
-## 🧠 Currently Integrated Models
-These models are pre-configured in your `config.json`:
-
-### 1. DeepSeek-R1 (`nebius_reasoning`)
-* **Best For**: Complex logic, coding, and math.
-* **Feature**: Provides a "Thinking" process before the answer. Essential for traceability.
-
-### 2. DeepSeek-V3 (`nebius_deepseek`)
-* **Best For**: Fast, general-purpose chat and summaries.
-* **Feature**: Massive Mixture-of-Experts (MoE) efficiency. High speed, low latency.
-
-### 3. NVIDIA Nemotron-70B (`nebius_nvidia`)
-* **Best For**: Natural English flow and "Helpfulness."
-* **Feature**: Currently ranks #1 on alignment benchmarks (AlpacaEval) for sounding "human."
+**Example:** `python3 main.py --trace --model nebius_deepseek_r1`
 
 ---
 
-## 🛠️ Requirements
-- `pip install openai mixedbread`
-- API Key files in root: `.nebius_key`, `.mxbai_key`, `.gemini_key`.
+## 🧠 Integrated Models & Budgeting
+- **DeepSeek-R1**: High-reasoning with full Chain of Thought (CoT) capture.
+- **DeepSeek-V3**: High-speed efficiency for general tasks.
+- **Budget Guard**: Automatically tracks token usage and enforces a hard USD stop.
+
+## 🛠️ Setup
+1. `pip install openai mixedbread-ai simple-term-menu`
+2. Add `.nebius_key` and `.mxbai_key` to your root directory.
+3. Update `config.json` with your Mixedbread `store_id`.
