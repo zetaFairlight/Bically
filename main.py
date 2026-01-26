@@ -58,6 +58,21 @@ def main():
         try:
             user_input = input("\nYou: ").strip()
         except EOFError: break
+
+        if user_input.lower() == "/menu":
+            print("\n🔄 Switching models...")
+            args.model = select_model_interactive(available_models, config)
+            p_cfg = config["providers"][args.model]
+            
+            try:
+                with open(p_cfg["api_key_file"], "r") as f:
+                    api_key = f.read().strip()
+                client = OpenAI(base_url=p_cfg["base_url"], api_key=api_key)
+                print(f"🚀 System Updated | Model: {args.model} | Limit: ${config['budget']['max_usd']}")
+            except FileNotFoundError:
+                print(f"!! Error: Key file {p_cfg['api_key_file']} missing.")
+            continue
+        
         if not user_input or user_input.lower() in ["exit", "quit"]: break
 
         context = "MOCK CONTEXT" if args.dry_run else search_memories(user_input)
