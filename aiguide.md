@@ -16,7 +16,7 @@ To prevent sync errors, `vectordb.py` uses a two-step process:
 2. **`client.stores.files.create()`**: Attaches that File ID to the specific `store_id` with metadata.
 
 ## 4. Live Model Switching
-- **Trigger**: Detected via string comparison (`/menu`) at the start of the input loop.
+- **Trigger**: Detected via string comparison (`/menu`) at the start of the input loop in `main.py`.
 - **Re-initialization**: The system re-reads the API key and re-instantiates the `OpenAI` client for the new provider.
 
 ## 5. Local Git Guardrails
@@ -24,3 +24,8 @@ Sensitive files are protected via `.gitignore`:
 - **Secrets**: Any file matching `.*_key` is ignored.
 - **Environment**: `venv/` and `__pycache__/` are excluded.
 - **Temporary Files**: `last_model.json` and local test scripts are not tracked.
+
+## 6. Connection Persistence (v1.5.1)
+- **Singleton Pattern**: `vectordb.py` maintains a global `_client` to reuse the existing HTTPS session.
+- **Efficiency**: Avoids re-authenticating for every query, preventing latency spikes after idle periods.
+- **Manual Refresh**: `get_mxb_client(force_refresh=True)` allows resetting the connection if keys change mid-session.

@@ -13,101 +13,83 @@ def check_budget(usage, model_id, config):
     in_cost = (usage.prompt_tokens / 1_000_000) * rates["input"]
     out_cost = (usage.completion_tokens / 1_000_000) * rates["output"]
     total = in_cost + out_cost
-    
     config["budget"]["current_session_spend"] += total
+    
     current = config["budget"]["current_session_spend"]
     limit = config["budget"]["max_usd"]
-
     print(f"💰 Session Spend: ${current:.4f} / ${limit:.2f}")
 
     if current >= limit:
-        print("\n🛑 BUDGET LIMIT REACHED. Quitting gracefully.")
+        print("\n🛑 BUDGET LIMIT REACHED.")
         sys.exit(0)
 
 def main():
-    parser = argparse.ArgumentParser(description="AI Cloud Controller")
-    parser.add_argument("--trace", action="store_true", help="Enable audit logging")
-    parser.add_argument("--dry-run", action="store_true", help="Total Dry Mode (No API costs)")
-    parser.add_argument("--model", type=str, help="Pre-select model in menu")
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--trace", action="store_true")
+    parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument("--model", type=str)
     args = parser.parse_args()
 
-    if not os.path.exists("config.json"):
-        print("!! Error: config.json not found.")
-        sys.exit(1)
-
-    with open("config.json") as f:
-        config = json.load(f)
+    with open("config.json", "r") as f: config = json.load(f)
+    available_models = list(config["providers"].keys())
     
-    available_models = list(config.get("providers", {}).keys())
-    args.model = select_model_interactive(available_models, config, pre_select=args.model)
+    # Init Model
+    args.model = select_model_interactive(available_models, config, args.model)
     p_cfg = config["providers"][args.model]
-    
-    # API Key Loading
-    try:
-        with open(p_cfg["api_key_file"], "r") as f:
-            api_key = f.read().strip()
-    except FileNotFoundError:
-        print(f"!! Error: Key file {p_cfg['api_key_file']} missing.")
-        sys.exit(1)
-
+    with open(p_cfg["api_key_file"], "r") as f: api_key = f.read().strip()
     client = OpenAI(base_url=p_cfg["base_url"], api_key=api_key)
-    trace_enabled = args.trace or config.get("traceability", False)
-    print(f"\n🚀 System Online | Model: {args.model} | Limit: ${config['budget']['max_usd']}")
+
+    # --- HYBRID MEMORY BUFFER (v1.5.2) ---
+    chat_history = [] 
+
+    print(f"🚀 Bically v1.5.2 | Hybrid RAG Active | Model: {args.model}")
 
     while True:
-        try:
-            user_input = input("\nYou: ").strip()
-        except EOFError: break
+        user_input = input("\nYou: ").strip()
 
         if user_input.lower() == "/menu":
-            print("\n🔄 Switching models...")
             args.model = select_model_interactive(available_models, config)
             p_cfg = config["providers"][args.model]
-            
-            try:
-                with open(p_cfg["api_key_file"], "r") as f:
-                    api_key = f.read().strip()
-                client = OpenAI(base_url=p_cfg["base_url"], api_key=api_key)
-                print(f"🚀 System Updated | Model: {args.model} | Limit: ${config['budget']['max_usd']}")
-            except FileNotFoundError:
-                print(f"!! Error: Key file {p_cfg['api_key_file']} missing.")
-            continue
-        
+            with open(p_cfg["api_key_file"], "r") as f: api_key = f.read().strip()
+            client = OpenAI(base_url=p_cfg["base_url"], api_key=api_key)
+            print(f"✅ Switched to {args.model}. History preserved.")
+            continue 
+
         if not user_input or user_input.lower() in ["exit", "quit"]: break
 
+        # 1. LONG-TERM RETRIEVAL (Cloud DB)
         context = "MOCK CONTEXT" if args.dry_run else search_memories(user_input)
 
-        thinking = None
-        if args.dry_run:
-            answer = f"DRY RUN response to '{user_input}'"
-        else:
-            try:
-                response = client.chat.completions.create(
-                    model=p_cfg["model"],
-                    messages=[
-                        {"role": "system", "content": f"Context: {context}"},
-                        {"role": "user", "content": user_input}
-                    ]
-                )
+        # 2. HYBRID PAYLOAD CONSTRUCTION
+        messages = [{"role": "system", "content": f"Long-term Cloud Memories: {context}"}]
+        
+        # Add the last 6 messages (3 turns) for short-term recall
+        messages.extend(chat_history[-6:]) 
+        messages.append({"role": "user", "content": user_input})
+
+        try:
+            if args.dry_run:
+                answer, thinking = f"DRY RUN: Response to {user_input}", None
+            else:
+                response = client.chat.completions.create(model=p_cfg["model"], messages=messages)
                 check_budget(response.usage, p_cfg["model"], config)
                 thinking = getattr(response.choices[0].message, 'reasoning_content', None)
                 answer = response.choices[0].message.content
-            except Exception as e:
-                if "429" in str(e) or "quota" in str(e).lower():
-                    print(f"\n⚠️  QUOTA EXHAUSTED: {args.model} is unavailable (Rate Limit).")
-                    print(">> Try another model or use --dry-run.")
-                else:
-                    print(f"\n❌ API ERROR: {e}")
-                continue
 
-        if thinking and trace_enabled:
-            print(f"\n[THOUGHTS]: {thinking}")
-        print(f"\nAI: {answer}")
+            if thinking and args.trace: print(f"\n[THOUGHTS]: {thinking}")
+            print(f"\nAI: {answer}")
+            
+            # 3. UPDATE SHORT-TERM MEMORY
+            chat_history.append({"role": "user", "content": user_input})
+            chat_history.append({"role": "assistant", "content": answer})
 
-        if trace_enabled and not args.dry_run:
-            log_trace(args.model, user_input, thinking, answer, config.get("trace_log"))
-        
-        save_response(answer, mode="local" if args.dry_run else "remote")
+            # 4. SYNC TO CLOUD & LOCAL
+            if args.trace and not args.dry_run: log_trace(args.model, user_input, thinking, answer)
+            save_response(f"User: {user_input} | AI: {answer}", mode="local" if args.dry_run else "remote")
+
+        except Exception as e:
+            print(f"❌ Error: {e}")
+            continue
 
 if __name__ == "__main__":
     main()
