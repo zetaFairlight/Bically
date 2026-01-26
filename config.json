@@ -1,0 +1,27 @@
+{
+    "active_provider": "nebius_reasoning",
+    "memory_mode": "remote",
+    "traceability": true,
+    "trace_log": "traceability_audit.txt",
+    "search_top_k": 3,
+    "nebius_reasoning": {
+        "model": "deepseek-ai/DeepSeek-R1",
+        "api_key_file": ".nebius_key",
+        "base_url": "https://api.studio.nebius.ai/v1/"
+    },
+    "nebius_deepseek": {
+        "model": "deepseek-ai/DeepSeek-V3",
+        "api_key_file": ".nebius_key",
+        "base_url": "https://api.studio.nebius.ai/v1/"
+    },
+    "nebius_nvidia": {
+        "model": "nvidia/Llama-3.1-Nemotron-70B-Instruct-HF",
+        "api_key_file": ".nebius_key",
+        "base_url": "https://api.studio.nebius.ai/v1/"
+    },
+    "mxbai": {
+        "model": "mixedbread-ai/mxbai-embed-large-v1",
+        "api_key_file": ".mxbai_key",
+        "store_id": "66aad39d-0305-4d81-93f6-8de77b3a823c"
+    }
+}
