@@ -28,9 +28,15 @@ def search_memories(query, top_k=3):
     try:
         results = client.stores.search(query=query, store_identifiers=[store_id], top_k=top_k)
         extracted_content = []
+        
         for match in results.data:
-            content = getattr(match, 'content', None) or getattr(match.input_chunk, 'content', "")
-            if content: extracted_content.append(content)
+            # SDK FIX: Check for 'content' directly, fallback to 'input_chunk'
+            content = getattr(match, 'content', None) or \
+                      (getattr(match.input_chunk, 'content', "") if hasattr(match, 'input_chunk') else "")
+            
+            if content:
+                extracted_content.append(content)
+                
         return "\n---\n".join(extracted_content)
     except Exception as e: 
         print(f"⚠️ Memory Search Error: {e}")
@@ -42,6 +48,7 @@ def save_response(text, category="General", mode="remote"):
         client, store_id = get_mxb_client()
         if client and store_id:
             try:
+                # Use timestamped filename for cloud uniqueness
                 filename = f"mem_{datetime.datetime.now().strftime('%H%M%S')}.txt"
                 file_obj = io.BytesIO(text.encode("utf-8"))
                 uploaded_file = client.files.create(file=(filename, file_obj))
@@ -52,7 +59,10 @@ def save_response(text, category="General", mode="remote"):
                 )
             except Exception as e: print(f">> [Sync Error] {e}")
 
-    # Local storage now uses a structured format
+    # Local storage uses the new structured XML format
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    if not os.path.exists("local_memory.txt"):
+        with open("local_memory.txt", "w") as f: f.write("")
+        
     with open("local_memory.txt", "a", encoding="utf-8") as f:
         f.write(f"\n\n{text}\n")
