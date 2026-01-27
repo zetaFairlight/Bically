@@ -1,13 +1,18 @@
-# 📝 Release Notes | v1.5.2 (Hybrid Memory & Statefulness)
-**Date:** 2026-01-26
+# 📝 Release Notes & Progress Log
 
-## 🚀 Key Improvements
-### 1. Hybrid Memory Buffer
-- **New Logic**: Implemented a `chat_history` list in `main.py` that stores the last 6 message turns.
-- **Impact**: Solves "indexing lag." AI has perfect recall of the current conversation without waiting for the Cloud DB to sync.
+## [v1.5.5] - 2026-01-27
+### 🚀 Structured Orchestration (Current)
+- **Structured XML Prompting**: Transitioned from flat system messages to a hierarchical XML payload.
+- **XML Logging Standard**: Local logs now follow a machine-readable format (`<ENTRY>`, `<USER>`, `<AI>`).
+- **Impact**: Dramatically improves accuracy when recalling personal facts and resolves context "amnesia."
 
-### 2. Context Injection Trigger
-- **Enhanced Payload**: The system "packs" the API suitcase with three layers: System instructions, Cloud Memory results, and the Local Chat History.
-
-### 3. SDK Error Resiliency
+## [v1.5.2] - 2026-01-26
+### 🔄 Hybrid Memory & Statefulness
+- **Hybrid Architecture**: Implemented a `chat_history` list in `main.py` for the last 6 message turns.
+- **Indexing Mitigation**: Injecting the local buffer into the API payload provides immediate context before the Cloud DB finishes indexing.
 - **Bug Fix**: `vectordb.py` now safely handles nested `content` attributes in Mixedbread search results.
+
+## [v1.5.1] - 2026-01-26
+### 🏗️ Initial Framework
+- **Singleton Client**: Introduced persistent cloud connections for faster retrieval.
+- **Budget Guard**: Implemented real-time token tracking and USD hard-stops.

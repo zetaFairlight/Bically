@@ -1,6 +1,6 @@
-# 🚀 Bically | v1.5.1 (Stateful Linear RAG)
+# 🚀 Bically | v1.5.5 (Structured XML Orchestrator)
 
-**A high-precision terminal interface for multi-model interactions with integrated memory and budget safety.**
+**A high-precision terminal interface for multi-model interactions with integrated XML-structured memory and budget safety.**
 
 ## 🎮 Execution Commands
 Run the system using the following CLI flags to override `config.json` settings:
@@ -23,18 +23,11 @@ While the chat session is active, you can use these special commands:
 ---
 
 ## 🧠 Smart Features
-- **Low-Latency Search**: v1.5.1 introduces persistent cloud connections (Singleton) for faster RAG retrieval.
-- **Budget Guard**: Automatically tracks token usage and enforces a hard USD stop (default $0.05).
-- **Interactive Menu**: Edit your budget limit or switch models directly from the startup UI or mid-chat.
-- **Local Persistence**: Conversations are always saved to `local_memory.txt`, even if cloud sync is disabled.
-- **Traceability**: Captured "Thinking" blocks saved to `traceability_audit.txt`.
-
----
-
-## 🧠 Integrated Models & Budgeting
-- **DeepSeek-R1**: High-reasoning with full Chain of Thought (CoT) capture.
-- **DeepSeek-V3**: High-speed efficiency for general tasks.
-- **Budget Guard**: Automatically tracks token usage and enforces a hard USD stop (default $0.05).
+- **Structured XML Orchestration**: v1.5.5 utilizes industry-standard XML tags (`<IDENTITY>`, `<KNOWLEDGE_BASE>`) to ensure high-fidelity recall.
+- **Low-Latency Search**: Persistent cloud connections (Singleton) for faster RAG retrieval via Mixedbread.
+- **Budget Guard**: Automatically tracks token usage and enforces a hard USD stop.
+- **Machine-Readable Local Memory**: Conversations are saved as structured XML blocks in `local_memory.txt`.
+- **Traceability**: Captured reasoning chains from models like DeepSeek-R1 are saved to `traceability_audit.txt`.
 
 ---
 

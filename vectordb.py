@@ -1,9 +1,9 @@
 import io
 import json
 import datetime
+import os
 from mixedbread import Mixedbread
 
-# Persistent client variables (Singleton)
 _client = None
 _store_id = None
 
@@ -27,20 +27,17 @@ def search_memories(query, top_k=3):
     if not client: return ""
     try:
         results = client.stores.search(query=query, store_identifiers=[store_id], top_k=top_k)
-        
-        # FIX: Handle nested content in ScoredTextInputChunk objects
         extracted_content = []
         for match in results.data:
             content = getattr(match, 'content', None) or getattr(match.input_chunk, 'content', "")
             if content: extracted_content.append(content)
-            
         return "\n---\n".join(extracted_content)
     except Exception as e: 
-        # Log to terminal but return empty to avoid "poisoning" the AI context
         print(f"⚠️ Memory Search Error: {e}")
         return ""
 
 def save_response(text, category="General", mode="remote"):
+    """Saves structured text to Mixedbread and local XML-style log."""
     if mode == "remote":
         client, store_id = get_mxb_client()
         if client and store_id:
@@ -55,5 +52,7 @@ def save_response(text, category="General", mode="remote"):
                 )
             except Exception as e: print(f">> [Sync Error] {e}")
 
+    # Local storage now uses a structured format
+    timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     with open("local_memory.txt", "a", encoding="utf-8") as f:
-        f.write(f"\n--- [{datetime.datetime.now()}] [{category}] ---\n{text}\n")
+        f.write(f"\n\n{text}\n")
