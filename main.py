@@ -19,12 +19,16 @@ def main():
     args = parser.parse_args()
 
     # Load Config & Select Model
-    with open("config.json", "r") as f: config = json.load(f)
+    with open("config.json", "r") as f: 
+        config = json.load(f)
+    
     available_models = list(config["providers"].keys())
     args.model = select_model_interactive(available_models, config, args.model)
     
     p_cfg = config["providers"][args.model]
-    with open(p_cfg["api_key_file"], "r") as f: api_key = f.read().strip()
+    with open(p_cfg["api_key_file"], "r") as f: 
+        api_key = f.read().strip()
+    
     client = OpenAI(base_url=p_cfg["base_url"], api_key=api_key)
 
     chat_history = [] 
@@ -32,10 +36,21 @@ def main():
 
     while True:
         user_input = input("\nYou: ").strip()
-        if not user_input or user_input.lower() in ["exit", "quit"]: break
+        if not user_input or user_input.lower() in ["exit", "quit"]: 
+            break
+
+        # --- DEBUG COMMAND INTERCEPT ---
+        if user_input.lower() == "!debug":
+            print("\n" + "="*40)
+            print("🧠 [SYSTEM DEBUG MODE]")
+            # Forces a refresh of identity-related memories for the debug report
+            search_memories("user identity name info pablo") 
+            print(f"Current Version: {APP_VERSION}")
+            print(f"Session ID: {SESSION_ID}")
+            print("="*40 + "\n")
+            continue
 
         # 1. SEARCH LONG-TERM MEMORY
-        # We query the cloud for relevant context before the AI answers
         context = search_memories(user_input)
 
         # 2. CONSTRUCT PROMPT
@@ -69,7 +84,6 @@ def main():
             chat_history.append({"role": "assistant", "content": answer})
 
             # 3. SAVE TO LONG-TERM MEMORY
-            # Structure the data as XML for better semantic retrieval later
             structured_log = f"<ENTRY>\n  <USER>{user_input}</USER>\n  <AI>{answer}</AI>\n</ENTRY>"
             
             save_response(
