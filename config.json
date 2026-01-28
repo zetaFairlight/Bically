@@ -4,6 +4,21 @@
     "search_top_k": 3,
     "traceability": true,
     "trace_log": "traceability_audit.txt",
+    "memory": {
+        "active_provider": "pinecone",
+        "pinecone": {
+            "api_key_file": ".pinecone_key",
+            "index_name": "bically-memory",
+            "dimension": 1024,
+            "metric": "cosine",
+            "region": "us-east-1",
+            "cloud": "aws"
+        },
+        "mxbai": {
+            "api_key_file": ".mxbai_key",
+            "model": "mixedbread-ai/mxbai-embed-large-v1"
+        }
+    },
     "budget": {
         "max_usd": 0.05,
         "current_session_spend": 0.0
@@ -35,10 +50,5 @@
             "api_key_file": ".nebius_key",
             "base_url": "https://api.studio.nebius.ai/v1/"
         }
-    },
-    "mxbai": {
-        "model": "mixedbread-ai/mxbai-embed-large-v1",
-        "store_id": "66aad39d-0305-4d81-93f6-8de77b3a823c",
-        "api_key_file": ".mxbai_key"
     }
 }

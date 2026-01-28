@@ -16,3 +16,13 @@
 ### 🏗️ Initial Framework
 - **Singleton Client**: Introduced persistent cloud connections for faster retrieval.
 - **Budget Guard**: Implemented real-time token tracking and USD hard-stops.
+
+## [v1.9.0-alpha] - 2026-01-28
+### 🏗️ The Hybrid Memory Shift
+This version moves away from Mixedbread's internal storage in favor of a **Mixedbread + Pinecone** hybrid pipeline. 
+
+#### 🧩 For AI/Copilot Agents:
+- **New Vector Flow**: Text -> `mxbai-embed-large-v1` -> Pinecone Index.
+- **SDK Update**: Switched to `pinecone-client` v6.0.0+.
+- **State Logic**: `config.json` now acts as a persistent DB for `current_session_spend`. 
+- **Metadata**: Pinecone records now include `text` and `session_id` as primary metadata keys.
