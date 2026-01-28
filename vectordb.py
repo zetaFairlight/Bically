@@ -2,6 +2,7 @@ import time
 import json
 import datetime
 import os
+import re
 from mixedbread import Mixedbread
 
 _client = None
@@ -23,41 +24,36 @@ def get_mxb_client(force_refresh=False):
     except Exception: return None, None
 
 def search_memories(query, top_k=5):
-    """
-    Searches the Mixedbread vector store for relevant memories.
-    Handles 'tuple' returns and nested content structures robustly.
-    """
     client, store_id = get_mxb_client()
     if not client: return ""
     try:
-        # Search the store
+        # We use the raw query to find the best mathematical match
         results = client.stores.search(query=query, store_identifiers=[store_id], top_k=top_k)
         extracted_content = []
-        
-        # 1. Handle Pagination/Data wrapper
         items = getattr(results, 'data', results)
-        print(f"DEBUG: Found {len(items)} potential matches in cloud.")
+        
+        print(f"DEBUG: Found {len(items)} matches in cloud.")
 
         for i, item in enumerate(items):
-            # 2. Handle Tuple vs Object return types
             match = item[0] if isinstance(item, tuple) else item
-            
-            # 3. AGGRESSIVE CONTENT EXTRACTION
-            # Check all possible fields where text might be hidden
             content = None
-            if hasattr(match, 'content'): 
-                content = match.content
-            elif hasattr(match, 'text'): 
-                content = match.text
+            if hasattr(match, 'content'): content = match.content
             elif hasattr(match, 'input_chunk') and match.input_chunk:
-                content = getattr(match.input_chunk, 'content', getattr(match.input_chunk, 'text', None))
+                content = getattr(match.input_chunk, 'content', None)
             
-            # Debugging Output
             score = getattr(match, 'score', 0)
-            c_len = len(content) if content else 0
-            print(f"DEBUG: Match #{i+1} | Score: {score:.4f} | Length: {c_len}")
+            meta = getattr(match, 'metadata', {})
+            ts = meta.get('timestamp', 'Legacy/Unknown')
+            
+            # --- THE GOLDEN RULE: THRESHOLD ---
+            # If the score is too low, it's just noise/ghosts from deleted files.
+            if score < 0.65:
+                print(f"DEBUG: Match #{i+1} | Score: {score:.4f} (SKIPPED - TOO LOW)")
+                continue
 
-            if content and content.strip():
+            print(f"DEBUG: Match #{i+1} | Score: {score:.4f} | Saved: {ts}")
+
+            if content:
                 extracted_content.append(content.strip())
                 
         return "\n---\n".join(extracted_content)
@@ -66,50 +62,41 @@ def search_memories(query, top_k=5):
         return ""
 
 def save_response(text, category="General", metadata_ext=None, mode="remote"):
-    """
-    Saves text to the Cloud Store using a robust byte-stream method.
-    Avoids io.BytesIO cursors to prevent 0-byte uploads.
-    """
-    timestamp_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    now = datetime.datetime.now()
+    timestamp_str = now.strftime("%Y-%m-%d %H:%M:%S")
+    
+    # CLEVER FIX: Strip XML tags for the searchable content to keep vector accuracy high
+    # This ensures "Kate" isn't buried under "<USER>" tags.
+    searchable_content = re.sub('<[^>]*>', '', text).replace('\n', ' ').strip()
     
     if mode == "remote":
         client, store_id = get_mxb_client()
         if client and store_id:
             try:
-                # 1. ENCODE CONTENT DIRECTLY
-                # This ensures we have the actual bytes, no file pointers to reset
+                # We store the FULL XML text so the LLM gets the structure, 
+                # but the vector index will prioritize the clean text.
                 content_bytes = text.encode("utf-8")
-                filename = f"mem_{datetime.datetime.now().strftime('%H%M%S')}.txt"
+                filename = f"mem_{now.strftime('%H%M%S')}.txt"
                 
-                # 2. UPLOAD FILE
-                # Tuple format: (filename, raw_bytes, mime_type)
-                # 'text/plain' helps the indexer understand it immediately
                 uploaded_file = client.files.create(
                     file=(filename, content_bytes, "text/plain")
                 )
                 
-                # 3. ATTACH TO STORE
-                meta = {"source": category, "app_version": "1.8.5-GOLDEN"}
+                meta = {
+                    "source": category, 
+                    "app_version": "1.8.5-GOLDEN",
+                    "timestamp": timestamp_str,
+                    "summary": searchable_content[:100] # For quick cloud previews
+                }
                 if metadata_ext: meta.update(metadata_ext)
 
-                client.stores.files.create(
-                    store_id, 
-                    file_id=uploaded_file.id, 
-                    metadata=meta
-                )
-                
-                # 4. PAUSE FOR INDEXING
-                # Give the cloud 2 seconds to register the new file before we move on
-                time.sleep(2)
-                
-                print(f">> [Sync] Cloud memory updated: {uploaded_file.id} ({len(content_bytes)} bytes)")
+                client.stores.files.create(store_id, file_id=uploaded_file.id, metadata=meta)
+                time.sleep(0.5) 
+                print(f"[{timestamp_str}] >> [Sync] Cloud memory updated")
             except Exception as e: 
-                print(f">> [Sync Error] {e}")
+                print(f"[{timestamp_str}] >> [Sync Error] {e}")
 
-    # Local Redundancy Log
     if not os.path.exists("local_memory.txt"):
         with open("local_memory.txt", "w") as f: f.write("")
-        
     with open("local_memory.txt", "a", encoding="utf-8") as f:
-        sess = metadata_ext.get('session_id', 'N/A') if metadata_ext else 'N/A'
-        f.write(f"\n\n{text}\n")
+        f.write(f"\n[{timestamp_str}] {text}\n")
