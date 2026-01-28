@@ -21,13 +21,25 @@
     },
     "budget": {
         "max_usd": 0.05,
-        "current_session_spend": 0.0
+        "current_session_spend": 0.0013482400000000001
     },
     "pricing": {
-        "gemini-2.0-flash": {"input": 0.10, "output": 0.40},
-        "deepseek-ai/DeepSeek-R1-0528": {"input": 0.55, "output": 2.19},
-        "deepseek-ai/DeepSeek-V3-0324": {"input": 0.27, "output": 1.10},
-        "nvidia/Llama-3_1-Nemotron-Ultra-253B-v1": {"input": 0.60, "output": 0.60}
+        "gemini-2.0-flash": {
+            "input": 0.1,
+            "output": 0.4
+        },
+        "deepseek-ai/DeepSeek-R1-0528": {
+            "input": 0.55,
+            "output": 2.19
+        },
+        "deepseek-ai/DeepSeek-V3-0324": {
+            "input": 0.27,
+            "output": 1.1
+        },
+        "nvidia/Llama-3_1-Nemotron-Ultra-253B-v1": {
+            "input": 0.6,
+            "output": 0.6
+        }
     },
     "providers": {
         "google_gemini": {

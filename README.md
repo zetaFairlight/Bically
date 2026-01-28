@@ -1,37 +1,44 @@
-# 🚀 Bically | v1.5.5 (Structured XML Orchestrator)
+# === FILE: README.md ===
+# 🚀 Bically | v1.9.0-alpha (Hybrid Memory Orchestrator)
 
-**A high-precision terminal interface for multi-model interactions with integrated XML-structured memory and budget safety.**
+**A high-precision terminal interface for multi-model interactions with integrated XML-structured hybrid memory and budget safety.**
 
-## 🎮 Execution Commands
-Run the system using the following CLI flags to override `config.json` settings:
-
-| Flag | Description |
-| :--- | :--- |
-| `--trace` | **Traceability Mode**: Prints the AI's internal "thinking" and logs to `traceability_audit.txt`. |
-| `--dry-run` | **Safety Mode**: Mocks responses and forces local-only memory ($0 cost). |
-| `--model [id]` | **Pre-select**: Skips initial navigation to a specific model. |
-
-**Example**: `python3 main.py --trace --model nebius_deepseek_r1`
-
----
-
-## ⌨️ In-Chat Commands
-While the chat session is active, you can use these special commands:
-- `/menu`: Re-opens the model selection menu to switch LLMs or edit the budget mid-session.
-- `exit` or `quit`: Safely closes the session and updates the budget log.
-
----
+## 🛡️ Pre-Flight Safety
+As of **v1.9.0-alpha**, the system executes `startup_check.py` automatically. It verifies your `.mxbai_key` and `.pinecone_key` and confirms the cloud index is online before initializing the chat.
 
 ## 🧠 Smart Features
-- **Structured XML Orchestration**: v1.5.5 utilizes industry-standard XML tags (`<IDENTITY>`, `<KNOWLEDGE_BASE>`) to ensure high-fidelity recall.
-- **Low-Latency Search**: Persistent cloud connections (Singleton) for faster RAG retrieval via Mixedbread.
-- **Budget Guard**: Automatically tracks token usage and enforces a hard USD stop.
-- **Machine-Readable Local Memory**: Conversations are saved as structured XML blocks in `local_memory.txt`.
-- **Traceability**: Captured reasoning chains from models like DeepSeek-R1 are saved to `traceability_audit.txt`.
+- **Hybrid RAG Pipeline**: Decouples embeddings (Mixedbread) from storage (Pinecone) for unlimited scaling.
+- **Structured XML Orchestration**: Maintains high-fidelity recall using tags like `<IDENTITY>` and `<KNOWLEDGE_BASE>`.
+- **Persistent Budgeting**: Flushes USD balance to `config.json` after every interaction.
 
 ---
 
-## 🛠️ Setup
-1. `pip install openai mixedbread-ai simple-term-menu`.
-2. Add API keys to your root: `.nebius_key`, `.mxbai_key`, `.gemini_key`.
-3. Update `config.json` with your Mixedbread `store_id`.
+# === FILE: BICAL_TECHNICAL_SPEC.md ===
+# 🏛️ Bically Technical Specification & System Map
+**Version:** v1.9.0-alpha (Hybrid Vector Pipeline)
+
+## 1. 🧩 Core Concepts
+### 1.1 Hybrid Memory (RAG)
+1. **Embedding (Mixedbread)**: Generates 1024-dimension vectors.
+2. **Storage (Pinecone)**: Manages the vector database and semantic search.
+
+## 2. 📂 Project Hierarchy
+- `startup_check.py`: [NEW] Pre-flight API & Index verification.
+- `vectordb.py`: Hybrid Memory Engine (MXB + Pinecone).
+- `config.json`: Pricing, budget, and persistent session state.
+
+---
+
+# === FILE: RELEASE_NOTES.md ===
+# 📝 Release Notes & Progress Log
+
+## [v1.9.0-alpha] - 2026-01-28
+### 🚀 The Hybrid Memory Shift (Work in Progress)
+- **Decoupled Pipeline**: Switched to Mixedbread + Pinecone hybrid.
+- **Fail-Fast Safety**: Integrated `startup_check.py` to prevent partial session crashes.
+- **Persistent Budgeting**: Fixed bug where session spend was only held in memory.
+
+## [v1.5.5] - 2026-01-27
+### 🚀 Structured Orchestration
+- **Structured XML Prompting**: Transitioned from flat messages to hierarchical XML.
+- **XML Logging Standard**: Local logs now follow the machine-readable `<ENTRY>` format.

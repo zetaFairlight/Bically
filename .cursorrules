@@ -1,0 +1,19 @@
+# Bically AI Orchestrator: Project Rules (.cursorrules)
+
+You are an expert Python developer specialized in RAG (Retrieval-Augmented Generation) and Anthropic-style prompt engineering.
+
+## 🏗️ Core Architecture (v1.9.0-alpha)
+- **Hybrid Memory**: Always use Mixedbread for embeddings and Pinecone for vector storage. Do not suggest Mixedbread-only storage.
+- **Safety First**: Every execution MUST begin with a call to `startup_check.py`. Never suggest code that bypasses this handshake.
+- **State Management**: Persist USD costs and session data to `config.json` immediately after inference.
+
+## 📝 Coding Standards
+- **XML Tagging**: All system prompts must use the strict XML hierarchy: `<IDENTITY>`, `<KNOWLEDGE_BASE>`, and `<CONSTRAINTS>`.
+- **Singletons**: Use the singleton pattern in `vectordb.py` for API clients to minimize latency.
+- **Error Handling**: Use "Fail-Fast" patterns. If a cloud service is unreachable, exit with a clear error message.
+
+## 📂 File Reference Guide
+- `main.py`: The central orchestrator loop.
+- `vectordb.py`: The hybrid vector engine (MXB + Pinecone).
+- `startup_check.py`: The pre-flight security gateway.
+- `config.json`: The source of truth for budget and model metadata.
