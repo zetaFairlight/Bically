@@ -1,5 +1,21 @@
 # 📝 Release Notes & Progress Log
 
+# 📝 Release Notes & Progress Log
+
+## [v1.9.0-alpha] - 2026-01-28
+### 🚀 The Hybrid Memory Shift (Work in Progress)
+*This version introduces a major decoupling of our vector pipeline.*
+
+#### 🧩 Core Architectural Changes:
+- **Decoupled Pipeline**: Switched from Mixedbread-only storage to a **Mixedbread + Pinecone** hybrid. Mixedbread now handles the 1024-dim embeddings, while Pinecone Serverless manages the long-term retrieval.
+- **Fail-Fast Safety (New)**: Integrated `startup_check.py` to verify API keys and cloud connectivity *before* the main orchestrator initializes. This prevents partial session crashes.
+- **Persistent Budgeting**: Fixed a bug where session spend was only held in memory; `main.py` now flushes the USD balance to `config.json` after every interaction.
+
+#### 📝 Minor Release Notes (Internal Agent Instructions):
+- **SDK Migration**: All `client.stores` calls are deprecated. Use `pinecone-client` v6.0.0+.
+- **Metadata Standard**: Every memory upsert now requires a JSON metadata block with `session_id`, `text`, and `timestamp`.
+- **Alpha Warning**: As this is an ALPHA, the Pinecone index `bically-memory` is subject to schema resets.
+
 ## [v1.5.5] - 2026-01-27
 ### 🚀 Structured Orchestration (Current)
 - **Structured XML Prompting**: Transitioned from flat system messages to a hierarchical XML payload.
@@ -16,10 +32,6 @@
 ### 🏗️ Initial Framework
 - **Singleton Client**: Introduced persistent cloud connections for faster retrieval.
 - **Budget Guard**: Implemented real-time token tracking and USD hard-stops.
-
-## [v1.9.0-alpha] - 2026-01-28
-### 🏗️ The Hybrid Memory Shift
-This version moves away from Mixedbread's internal storage in favor of a **Mixedbread + Pinecone** hybrid pipeline. 
 
 #### 🧩 For AI/Copilot Agents:
 - **New Vector Flow**: Text -> `mxbai-embed-large-v1` -> Pinecone Index.
