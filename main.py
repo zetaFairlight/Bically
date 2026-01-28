@@ -9,7 +9,7 @@ from menu import select_model_interactive
 
 # Unique Session ID for traceability
 SESSION_ID = f"SESS-{uuid.uuid4().hex[:8].upper()}"
-APP_VERSION = "1.7.0"
+APP_VERSION = "1.8.5-GOLDEN"
 
 def main():
     parser = argparse.ArgumentParser()

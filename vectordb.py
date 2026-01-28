@@ -89,7 +89,7 @@ def save_response(text, category="General", metadata_ext=None, mode="remote"):
                 )
                 
                 # 3. ATTACH TO STORE
-                meta = {"source": category, "app_version": "1.7.0"}
+                meta = {"source": category, "app_version": "1.8.5-GOLDEN"}
                 if metadata_ext: meta.update(metadata_ext)
 
                 client.stores.files.create(
