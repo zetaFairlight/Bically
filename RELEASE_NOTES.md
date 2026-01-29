@@ -1,3 +1,8 @@
+## [v1.9.1-patch] - 2026-01-29
+### 🛠️ Maintenance
+- Integrated XML-structured documentation for RAG precision.
+- Added 'bz' and 'br' rapid-triggers.
+
 # 📝 Release Notes & Progress Log
 
 # 📝 Release Notes & Progress Log
@@ -12,7 +17,7 @@
 - **Persistent Budgeting**: Fixed a bug where session spend was only held in memory; `main.py` now flushes the USD balance to `config.json` after every interaction.
 
 #### 📝 Minor Release Notes (Internal Agent Instructions):
-- **SDK Migration**: All `client.stores` calls are deprecated. Use `pinecone-client` v6.0.0+.
+- **SDK Migration**: All `pinecone-client` calls are deprecated. Use `pinecone-client` v6.0.0+.
 - **Metadata Standard**: Every memory upsert now requires a JSON metadata block with `session_id`, `text`, and `timestamp`.
 - **Alpha Warning**: As this is an ALPHA, the Pinecone index `bically-memory` is subject to schema resets.
 

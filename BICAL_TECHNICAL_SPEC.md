@@ -4,7 +4,7 @@ This new file, **`BICAL_TECHNICAL_SPEC.md`**, acts as the definitive "master map
 
 ```markdown
 # 🏛️ Bically Technical Specification & System Map
-**Version:** v1.5.5 (Structured XML Orchestration)  
+**Version:** v1.9.0-alpha (Hybrid Memory Decoupling)  
 **Last Updated:** 2026-01-27 10:30:00  
 **Status:** Operational / Lean Documentation Mode  
 
@@ -134,3 +134,12 @@ Built on `simple-term-menu` for terminal interactivity.
 * **Dry Run Safety**: In `--dry-run`, no cloud sync occurs, and the response is a mock string to preserve credits.
 
 ```
+
+<LATEST_ARCHITECTURE_SHIFT>
+  <FILE name="startup_check.py">
+    <INTENT>Pre-flight safety; verifies API/Cloud before main loop.</INTENT>
+  </FILE>
+  <FILE name="vectordb.py">
+    <INTENT>Decoupled logic: MXB for Embeddings, Pinecone for Storage.</INTENT>
+  </FILE>
+</LATEST_ARCHITECTURE_SHIFT>

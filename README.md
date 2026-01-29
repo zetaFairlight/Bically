@@ -1,4 +1,9 @@
-# 🚀 Bically | v1.5.5 (Structured XML Orchestrator)
+<VERSION_LOG>
+  <ID>v1.9.0-alpha</ID>
+  <ARCH>Hybrid-Pinecone</ARCH>
+</VERSION_LOG>
+
+# 🚀 Bically | v1.9.0-alpha (Hybrid Pinecone RAG)
 
 **A high-precision terminal interface for multi-model interactions with integrated XML-structured memory and budget safety.**
 

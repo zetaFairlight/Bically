@@ -1,5 +1,5 @@
 {
-    "active_provider": "nebius_deepseek_r1",
+    "active_provider": "nebius_deepseek_v3",
     "memory_mode": "remote",
     "search_top_k": 3,
     "traceability": true,
