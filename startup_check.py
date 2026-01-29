@@ -3,10 +3,10 @@ import sys
 import os
 from mixedbread import Mixedbread
 from pinecone import Pinecone
+from version import __version__
 
 def run_safety_check():
-    print("🛠️  Bically v1.9.1-alpha: Running Pre-Flight Safety Checks...")
-    
+    print(f"🛠️  Bically v{__version__}: Running Pre-Flight Safety Checks...")    
     # 1. Load Config
     if not os.path.exists("config.json"):
         print("❌ CRITICAL: config.json missing.")

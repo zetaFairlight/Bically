@@ -10,7 +10,7 @@ import accounting
 from prompt_loader import load_system_prompt  # New dynamic loader
 
 # Global Constants
-APP_VERSION = "1.9.1-alpha"
+from version import __version__ as APP_VERSION
 SESSION_ID = f"SESS-{uuid.uuid4().hex[:8].upper()}"
 PROMPT_TEMPLATE_PATH = "templates/orchestrator.xml" # Path to your external XML
 
@@ -44,6 +44,8 @@ def main():
     client = OpenAI(base_url=p_cfg["base_url"], api_key=api_key)
 
     chat_history = [] 
+    trace_active = args.trace  # PERSISTENT TOGGLE STATE [NEW]
+    
     print(f"\n🚀 Bically v{APP_VERSION} | Session: {SESSION_ID}")
     print(f"📡 Provider: {selected_id} | Memory: {'LOCAL-ONLY' if args.dry_run else 'HYBRID-PINECONE'}")
 
@@ -54,6 +56,16 @@ def main():
             if not user_input or user_input.lower() in ["exit", "quit"]:
                 break
             
+            # --- !DEBUG COMMAND HANDLER [FIXED & IMPLEMENTED] ---
+            if user_input.lower() == "!debug":
+                trace_active = not trace_active
+                print(f"\n🛠️  [DEBUG MODE] {'ENABLED' if trace_active else 'DISABLED'}")
+                print(f"   • Version: {APP_VERSION}")
+                print(f"   • Session: {SESSION_ID}")
+                print(f"   • Spend:   ${config['budget']['current_session_spend']:.4f}")
+                print(f"   • Model:   {p_cfg['model']}")
+                continue
+
             if user_input.lower() == "/menu":
                 selected_id = select_model_interactive(available_models, config)
                 p_cfg = config["providers"][selected_id]
@@ -62,19 +74,21 @@ def main():
             # A. RAG RETRIEVAL (Pinecone Query via Mixedbread Vector)
             context = ""
             if not args.dry_run:
-                print("🔍 Querying Hybrid Memory...")
+                if trace_active: print("🔍 Querying Hybrid Memory...")
                 context = search_memories(user_input, top_k=config.get("search_top_k", 3))
 
             # B. DECOUPLED PROMPT ASSEMBLY
-            # Fetches the template from /templates and injects the context
             system_content = load_system_prompt(
                 PROMPT_TEMPLATE_PATH, 
                 context, 
                 APP_VERSION
             )
 
-            if args.trace:
+            # --- TRACE VISIBILITY ---
+            if trace_active:
                 print(f"\n--- [DEBUG: System Prompt] ---\n{system_content}\n---")
+                if not context:
+                    print("⚠️  Trace: RAG returned 0 results for this query.")
 
             messages = [{"role": "system", "content": system_content}]
             messages.extend(chat_history[-6:]) # Short-term memory window

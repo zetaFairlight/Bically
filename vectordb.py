@@ -83,6 +83,6 @@ def save_response(structured_log, metadata_ext=None, mode="remote"):
         
         # Upsert
         index.upsert(vectors=[{"id": uid, "values": vector, "metadata": meta}])
-        print(f">> [Sync] Cloud memory (v1.9.0) updated: {uid}")
+        print(f">> [Sync] Cloud memory (v1.9.1) updated: {uid}")
     except Exception as e:
         print(f">> [Sync Error] {e}")

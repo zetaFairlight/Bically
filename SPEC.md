@@ -1,7 +1,7 @@
 # 🧬 Bically: The Hybrid Memory Orchestrator
 > **Project Philosophy**: Logic is immutable; Personality is fluid. 
 
-## 1. Project Version: 1.9.1-alpha (Refactor: Decoupled Logic)
+## 1. Project Version: 1.9.2-alpha (Refactor: Decoupled Logic)
 This version marks the transition from hardcoded system prompts to a **Template-Driven Architecture**.
 
 ## 2. The Core Architecture (Decoupled RAG)

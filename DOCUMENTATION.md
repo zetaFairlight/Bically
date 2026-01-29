@@ -1,35 +1,22 @@
-# === FILE: DOCUMENTATION.md ===
-# 🤖 Bically Technical Documentation (v1.9.0-alpha)
+# 🧬 Bically DNA & Project Rules
+**Version**: 1.9.2-alpha
+**Focus**: Maintenance, Safety, and AI-Agent Guardrails
 
-## 🏗️ System Architecture
-| Component | Technology | Role |
-| :--- | :--- | :--- |
-| **Orchestrator** | `main.py` | Executes the RAG loop and enforces the "Fail-Fast" handshake. |
-| **Safety Guard** | `startup_check.py` | [NEW] Verifies API keys and Pinecone index status before launch. |
-| **Memory Engine** | `vectordb.py` | [UPDATED] Hybrid pipeline using Mixedbread (Embed) and Pinecone (Store). |
-| **Accounting** | `accounting.py` | Calculates real-time USD costs and persists them to `config.json`. |
+## 1. The Decoupling Protocol
+This is the most critical rule for the v1.9.1 branch. To maintain an "Elegant 2026" architecture, we follow a strict **No-Static-Identity** policy:
+* **Zero Identity Hardcoding**: Never write user names or specific persona traits directly into Python files.
+* **RAG Primacy**: If the system needs to know "Who am I talking to?", it must look into the `{{ context }}` provided by the database.
+* **Template Isolation**: All modifications to Bically's tone, brevity, or constraints MUST happen in `templates/orchestrator.xml`.
 
----
+## 2. Operational Safety
+* **Pre-Flight Checks**: The `startup_check.py` must run at every launch to verify that Mixedbread and Pinecone API keys are valid and the cloud index is online.
+* **Fail-Fast Mechanism**: If any dependency (Mixedbread, Pinecone, or Config) is missing, the system must `sys.exit(1)` immediately to prevent data corruption.
 
-## ⚙️ Logic & Data Flow
-1. **Safety Handshake**: `startup_check.py` validates cloud credentials to prevent partial session crashes.
-2. **Retrieval**: `vectordb.py` embeds query via Mixedbread and performs a semantic search in Pinecone.
-3. **Structuring**: `main.py` builds the XML "Suitcase" (`<IDENTITY>`, `<KNOWLEDGE_BASE>`, `<CONSTRAINTS>`).
-4. **Inference**: LLM processes the structured context and generates a response.
-5. **Stateful Sync**: Budget is updated in `config.json` and the interaction is synced to Pinecone with session metadata.
+## 3. Developer & AI Assistant Rules
+* **Version Consistency**: When updating the code, ensure `APP_VERSION` in `main.py` matches the headers in this file.
+* **Schema Protection**: Do not change the metadata structure in `vectordb.py` without updating the search logic. The system expects a `text` field containing the interaction log.
+* **Accounting**: Every completion must be logged through the `accounting.py` module to ensure session budgets are respected.
 
----
-
-## 🛡️ Technical Guardrails
-### 1. Structured Prompting (Anthropic Standard)
-The system uses the following tag hierarchy for reliability:
-- `<IDENTITY>`: Sets the Bically persona.
-- `<KNOWLEDGE_BASE>`: Houses long-term context from Pinecone.
-- `<CONSTRAINTS>`: Enforces behavioral rules.
-
-### 2. Budgeting Logic
-- **Persistence**: Unlike v1.5.5, the budget is now flushed to disk after every turn to ensure continuity across restarts.
-- **Safety**: Hard-exit to prevent overspending beyond `max_usd` defined in `config.json`.
-
-### 3. Connection Persistence
-- **Pattern**: Singleton clients in `vectordb.py` for both Mixedbread and Pinecone prevent latency from repeated SSL handshakes.
+## 4. Troubleshooting
+- **Identity Confusion**: If Bically forgets a name, check the Pinecone index to ensure the `<ENTRY>` tags are being synced correctly by `save_response`.
+- **Loading Errors**: If the system prompt fails, verify that `templates/orchestrator.xml` exists and is readable.
