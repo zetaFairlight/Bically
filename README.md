@@ -1,44 +1,13 @@
-# === FILE: README.md ===
-# 🚀 Bically | v1.9.0-alpha (Hybrid Memory Orchestrator)
+# 🚀 Bically AI v1.9.2-alpha
 
-**A high-precision terminal interface for multi-model interactions with integrated XML-structured hybrid memory and budget safety.**
+Bically is a high-precision AI orchestrator. This version marks the transition to a **Decoupled Template Architecture**, where the AI's persona is separated from the execution engine.
 
-## 🛡️ Pre-Flight Safety
-As of **v1.9.0-alpha**, the system executes `startup_check.py` automatically. It verifies your `.mxbai_key` and `.pinecone_key` and confirms the cloud index is online before initializing the chat.
+## 🛠 Quick Start
+1. **Safety Check**: Run `python main.py` to trigger the automated `startup_check.py`.
+2. **Dynamic Persona**: Edit `templates/orchestrator.xml` to change Bically's tone or rules. 
+3. **Execution**: Use `--trace` to see the new decoupled prompt assembly in action.
 
-## 🧠 Smart Features
-- **Hybrid RAG Pipeline**: Decouples embeddings (Mixedbread) from storage (Pinecone) for unlimited scaling.
-- **Structured XML Orchestration**: Maintains high-fidelity recall using tags like `<IDENTITY>` and `<KNOWLEDGE_BASE>`.
-- **Persistent Budgeting**: Flushes USD balance to `config.json` after every interaction.
-
----
-
-# === FILE: BICAL_TECHNICAL_SPEC.md ===
-# 🏛️ Bically Technical Specification & System Map
-**Version:** v1.9.0-alpha (Hybrid Vector Pipeline)
-
-## 1. 🧩 Core Concepts
-### 1.1 Hybrid Memory (RAG)
-1. **Embedding (Mixedbread)**: Generates 1024-dimension vectors.
-2. **Storage (Pinecone)**: Manages the vector database and semantic search.
-
-## 2. 📂 Project Hierarchy
-- `startup_check.py`: [NEW] Pre-flight API & Index verification.
-- `vectordb.py`: Hybrid Memory Engine (MXB + Pinecone).
-- `config.json`: Pricing, budget, and persistent session state.
-
----
-
-# === FILE: RELEASE_NOTES.md ===
-# 📝 Release Notes & Progress Log
-
-## [v1.9.0-alpha] - 2026-01-28
-### 🚀 The Hybrid Memory Shift (Work in Progress)
-- **Decoupled Pipeline**: Switched to Mixedbread + Pinecone hybrid.
-- **Fail-Fast Safety**: Integrated `startup_check.py` to prevent partial session crashes.
-- **Persistent Budgeting**: Fixed bug where session spend was only held in memory.
-
-## [v1.5.5] - 2026-01-27
-### 🚀 Structured Orchestration
-- **Structured XML Prompting**: Transitioned from flat messages to hierarchical XML.
-- **XML Logging Standard**: Local logs now follow the machine-readable `<ENTRY>` format.
+## 🧩 v1.9.1 Refactor Highlights
+- **Engine/Persona Split**: Python code no longer contains identity strings or long XML prompts.
+- **Template Injection**: Uses `prompt_loader.py` to hydrate XML with RAG context.
+- **Identity Fluidity**: User names (e.g., "Kate") are now dynamic RAG attributes.

@@ -1,19 +1,16 @@
-# Bically AI Orchestrator: Project Rules (.cursorrules)
+# 🎯 Bically General AI Rules
 
-You are an expert Python developer specialized in RAG (Retrieval-Augmented Generation) and Anthropic-style prompt engineering.
+## 🧠 Partner Mindset & Architecture Enforcement
+- **Three-File Truth**: Always reference `README.md`, `BICAL_TECHNICAL_SPEC.md`, and `DOCUMENTATION.md` before suggesting changes. These are the "North Star" of the project.
+- **No Redundancy**: Do not create new documentation files. If technical info is missing, append it to `DOCUMENTATION.md`. If a high-level rule changes, update `BICAL_TECHNICAL_SPEC.md`.
+- **Hybrid Memory Priority**: Any code change to `vectordb.py` MUST maintain the decoupling of Mixedbread (Embeddings) and Pinecone (Storage). Never revert to local-only vector storage.
 
-## 🏗️ Core Architecture (v1.9.0-alpha)
-- **Hybrid Memory**: Always use Mixedbread for embeddings and Pinecone for vector storage. Do not suggest Mixedbread-only storage.
-- **Safety First**: Every execution MUST begin with a call to `startup_check.py`. Never suggest code that bypasses this handshake.
-- **State Management**: Persist USD costs and session data to `config.json` immediately after inference.
+## 🛠️ Coding Standards (Python/RAG)
+- **Safety First**: Never suggest bypassing `startup_check.py`. It is the mandatory gatekeeper for API and Index health.
+- **Budget Persistence**: Ensure any new module that incurs cost uses `accounting.py` to flush spend to `config.json` immediately.
+- **XML Consistency**: When generating prompts or logs, strictly follow the XML tag hierarchy defined in the Technical Spec (`<IDENTITY>`, `<KNOWLEDGE_BASE>`, etc.).
 
-## 📝 Coding Standards
-- **XML Tagging**: All system prompts must use the strict XML hierarchy: `<IDENTITY>`, `<KNOWLEDGE_BASE>`, and `<CONSTRAINTS>`.
-- **Singletons**: Use the singleton pattern in `vectordb.py` for API clients to minimize latency.
-- **Error Handling**: Use "Fail-Fast" patterns. If a cloud service is unreachable, exit with a clear error message.
-
-## 📂 File Reference Guide
-- `main.py`: The central orchestrator loop.
-- `vectordb.py`: The hybrid vector engine (MXB + Pinecone).
-- `startup_check.py`: The pre-flight security gateway.
-- `config.json`: The source of truth for budget and model metadata.
+## 🚫 Prohibited Actions
+- **Don't Apologize**: Just fix the error or state the limitation.
+- **No Assumptions**: If you are unsure about the current Pinecone index state or a local key, ask the user to run `startup_check.py` and provide the output.
+- **Smallest Change**: Aim for the smallest possible code diff to avoid breaking the RAG loop stability.

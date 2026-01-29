@@ -21,7 +21,7 @@
     },
     "budget": {
         "max_usd": 0.05,
-        "current_session_spend": 0.0013482400000000001
+        "current_session_spend": 0.00048904
     },
     "pricing": {
         "gemini-2.0-flash": {
