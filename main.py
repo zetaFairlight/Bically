@@ -36,7 +36,11 @@ def main():
     if args.check:
         run_safety_check()
     else:
-        print(f"🚀 Bically {APP_VERSION} initialized")
+        # Less chatty: startup message only if requested or once
+        is_verbose = args.trace
+        if is_verbose:
+            print(f"🚀 Bically {APP_VERSION} initialized")
+
         try:
             with open("config.json", "r") as f:
                 config = json.load(f)
@@ -52,13 +56,32 @@ def main():
             chat_history = []
 
             while True:
-                prompt_symbol = "\033[93m(🛠️) You\033[0m" if (args.trace or DEBUG_MODE) else "You"
-                user_input = input(f"\n{prompt_symbol}: ").strip()
+                # 1. Logic for dynamic icons
+                icons = []
+                if DEBUG_MODE: icons.append("🐞")
+                if is_verbose: icons.append("🔍")
+                
+                mode_suffix = f" [{' '.join(icons)}]" if icons else ""
+                prompt_symbol = f"\033[93m(🛠️) You{mode_suffix}\033[0m" if (is_verbose or DEBUG_MODE) else "You"
+                
+                # 2. Input handling
+                try:
+                    user_input = input(f"\n{prompt_symbol}: ").strip()
+                except (EOFError, KeyboardInterrupt):
+                    break
+
                 if not user_input: continue
+                
+                # 3. Intercept commands
                 if user_input.startswith("!"):
-                    if user_input.lower() in ["!exit", "!quit"]: break
+                    cmd = user_input.lower()
+                    if cmd in ["!exit", "!quit"]: break
+                    if cmd == "!debug":
+                        DEBUG_MODE = not DEBUG_MODE
+                        print(f">> Debug: {'ON' if DEBUG_MODE else 'OFF'}")
                     continue
 
+                # 4. Engine logic
                 context = search_memories(user_input) if len(user_input) > 20 else ""
                 system_payload = load_template(APP_VERSION, SESSION_ID, context)
                 
@@ -73,6 +96,9 @@ def main():
                     t = threading.Thread(target=background_save, args=(user_input, answer, SESSION_ID))
                     t.daemon = True 
                     t.start()
+                    
+                    chat_history.append({"role": "user", "content": user_input})
+                    chat_history.append({"role": "assistant", "content": answer})
                 except Exception as e:
                     print(f"❌ Error: {e}")
 
