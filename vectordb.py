@@ -1,88 +1,93 @@
+import os
 import json
-import datetime
+import time
 import uuid
-from mixedbread import Mixedbread
-from pinecone import Pinecone, ServerlessSpec
+from mixedbread_ai import MixedbreadAI
+from pinecone import Pinecone
 
-# Singleton storage
-_mxb_client = None
-_pinecone_index = None
+# Load config to get key file paths
+with open("config.json", "r") as f:
+    config = json.load(f)
 
-def get_clients():
-    """Initializes and returns both MXB and Pinecone singletons."""
-    global _mxb_client, _pinecone_index
-    if _mxb_client and _pinecone_index:
-        return _mxb_client, _pinecone_index
-    
-    with open("config.json", "r") as f:
-        config = json.load(f)
-    
-    mem_cfg = config["memory"]
-    
-    # 1. Init Mixedbread (The Embedder)
-    with open(mem_cfg["mxbai"]["api_key_file"], "r") as f:
-        mxb_key = f.read().strip()
-    _mxb_client = Mixedbread(api_key=mxb_key)
-    
-    # 2. Init Pinecone (The Storage)
-    p_cfg = mem_cfg["pinecone"]
-    with open(p_cfg["api_key_file"], "r") as f:
-        pc_key = f.read().strip()
-    
-    pc = Pinecone(api_key=pc_key)
-    
-    # Create index if missing (Serverless)
-    if p_cfg["index_name"] not in [idx.name for idx in pc.list_indexes()]:
-        pc.create_index(
-            name=p_cfg["index_name"],
-            dimension=p_cfg["dimension"],
-            metric=p_cfg["metric"],
-            spec=ServerlessSpec(cloud=p_cfg["cloud"], region=p_cfg["region"])
-        )
-    
-    _pinecone_index = pc.Index(p_cfg["index_name"])
-    return _mxb_client, _pinecone_index
+# Helper to read keys from files as defined in your config
+def get_key(path):
+    with open(path, "r") as f:
+        return f.read().strip()
 
-def search_memories(query, top_k=3):
-    """Retrieves context by embedding query via MXB and searching Pinecone."""
-    mxb, index = get_clients()
+# Configuration pulled directly from your uploaded config.json
+MB_API_KEY = get_key(config["memory"]["mxbai"][".mxbai_key"])
+PINECONE_API_KEY = get_key(config["memory"]["pinecone"][".pinecone_key"])
+INDEX_NAME = config["memory"]["pinecone"][".pinecone_key"]
+
+def save_response(text, metadata_ext=None, mode="remote"):    """
+Saves text to vector DB.
+STRICTLY SILENT: This function must not print to terminal
+to prevent cursor hijacking in the main UI loop.
+"""
+if not MB_API_KEY or not PINECONE_API_KEY:
+    return "Error: Missing Keys"
+
     try:
-        # Generate embedding
+        # Initialize clients locally for thread safety
+        mxb = MixedbreadAI(api_key=MB_API_KEY)
+        pc = Pinecone(api_key=PINECONE_API_KEY)
+
+        # 1. Generate Embedding
         res = mxb.embeddings.create(
             model="mixedbread-ai/mxbai-embed-large-v1",
-            input=query,
+            input=[text],
             normalized=True
-        )
+            )
+        embedding = res.data[0].embedding
+
+        # 2. Prepare Metadata (Using the restored time module)
+        metadata = {
+        "content": text,
+        "timestamp": time.time(),
+        "version": "v1.9.1-alpha"
+        }
+        if metadata_ext:
+            metadata.update(metadata_ext)
+
+        # 3. Upsert to Pinecone (Using the restored uuid module)
+        index = pc.Index(INDEX_NAME)
+        vector_id = f"mem_{uuid.uuid4().hex[:12]}"
+
+        index.upsert(vectors=[(vector_id, embedding, metadata)])
+
+        # Return ID for internal tracking in main.py !status or !debug
+        return vector_id
+
+    except Exception as e:
+        # We raise the error so the background_save in main.py can catch
+        # it and update the last_sync_log variable.
+        raise RuntimeError(f"Database Sync Error: {str(e)}")
+
+        def search_memories(query, top_k=3):
+    """
+    Retrieves context silently.
+    Used by main.py to pull Hybrid RAG context.
+    """
+    try:
+        mxb = MixedbreadAI(api_key=MB_API_KEY)
+        pc = Pinecone(api_key=PINECONE_API_KEY)
+
+        res = mxb.embeddings.create(
+            model="mixedbread-ai/mxbai-embed-large-v1",
+            input=[query]
+            )
         query_vector = res.data[0].embedding
-        
-        # Search Pinecone
-        results = index.query(vector=query_vector, top_k=top_k, include_metadata=True)
-        return "\n---\n".join([m.metadata['text'] for m in results.matches])
-    except Exception as e:
-        print(f">> [Search Error] {e}")
-        return ""
 
-def save_response(structured_log, metadata_ext=None, mode="remote"):
-    """Syncs interaction to Pinecone using MXB vectors."""
-    if mode == "local": return
-        
-    mxb, index = get_clients()
-    try:
-        # Generate Vector
-        res = mxb.embeddings.create(
-            model="mixedbread-ai/mxbai-embed-large-v1",
-            input=structured_log,
-            normalized=True
-        )
-        vector = res.data[0].embedding
-        
-        # Metadata Setup
-        uid = str(uuid.uuid4())
-        meta = {"text": structured_log, "timestamp": str(datetime.datetime.now())}
-        if metadata_ext: meta.update(metadata_ext)
-        
-        # Upsert
-        index.upsert(vectors=[{"id": uid, "values": vector, "metadata": meta}])
-        print(f">> [Sync] Cloud memory (v1.9.0) updated: {uid}")
-    except Exception as e:
-        print(f">> [Sync Error] {e}")
+        index = pc.Index(INDEX_NAME)
+        results = index.query(
+            vector=query_vector,
+            top_k=top_k,
+            include_metadata=True
+            )
+
+        # Formats the results into a string for the system prompt
+        return "\n---\n".join([m['metadata']['content'] for m in results['matches']])
+    except Exception:
+        # If search fails, we return an empty string to allow the AI
+        # to continue without context rather than crashing.
+        return ""

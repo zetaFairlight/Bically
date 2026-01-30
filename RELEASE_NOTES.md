@@ -7,7 +7,7 @@
 
 # 📝 Release Notes & Progress Log
 
-## [v1.9.0-alpha] - 2026-01-28
+## [v1.9.1-alpha] - 2026-01-28
 ### 🚀 The Hybrid Memory Shift (Work in Progress)
 *This version introduces a major decoupling of our vector pipeline.*
 
